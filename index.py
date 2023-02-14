@@ -1,7 +1,8 @@
 BASE_URL="https://gist.githubusercontent.com/armgilles/194bcff35001e7eb53a2a8b441e8b2c6/raw/92200bc0a673d5ce2110aaad4544ed6c4010f687/pokemon.csv"
 
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score
 import streamlit as slt
 import seaborn as sns
@@ -73,13 +74,19 @@ train_y = train_set["Legendary"].copy()
 test_x = test_set.drop("Legendary", axis=1)
 test_y = test_set["Legendary"].copy()
 
-slt.subheader("Aplicando modelo de regressão linear com Cross Validation")
-model = LinearRegression()
+slt.subheader("Aplicando modelo de SVM com Cross Validation")
+model = SVC()
 scores = cross_val_score(model, train_x, train_y, cv=10, scoring="neg_mean_squared_error")
 rmse_scores = np.sqrt(-scores)
 slt.write("Scores: " + str(rmse_scores))
 slt.write("Média: " + str(rmse_scores.mean()))
 slt.write("Desvio padrão: " + str(rmse_scores.std()))
 
-
-
+slt.subheader("Aplicando GridSearch para encontrar os melhores parâmetros para o modelo de SVM")
+param_grid = [
+  {'kernel': ['linear', 'rbf']}
+]
+model = SVC()
+grid_search = GridSearchCV(model, param_grid, cv=10, scoring="neg_mean_squared_error")
+grid_search.fit(train_x, train_y)
+slt.write("Melhor kernel: " + str(grid_search.best_params_))
